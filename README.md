@@ -1,4 +1,4 @@
-# 🦾 Arm Playground
+#  Arm Playground
 
 **A robot arm trained with reinforcement learning in PyTorch, running live in your browser.**
 Drag the target and it chases it. Put a puck and a goal on the table and it pushes the puck home.
