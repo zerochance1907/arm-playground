@@ -67,10 +67,9 @@ produce. Switch to **Random actions** to see what the arm does without its brain
 
 ## On Hugging Face
 
-<!-- TODO: replace <user> with the Hugging Face username once published (python hf/publish.py --user <user>) -->
-- **Model:** [huggingface.co/&lt;user&gt;/arm-playground](https://huggingface.co/<user>/arm-playground):
+- **Model:** [huggingface.co/zerochance1907/arm-playground](https://huggingface.co/zerochance1907/arm-playground):
   both policies as safetensors + ONNX, drop-in (raw observation in, action out), with a model card.
-- **Space:** [huggingface.co/spaces/&lt;user&gt;/arm-playground](https://huggingface.co/spaces/<user>/arm-playground):
+- **Space:** [huggingface.co/spaces/zerochance1907/arm-playground](https://huggingface.co/spaces/zerochance1907/arm-playground):
   the same live demo.
 
 [`hf/export_hub.py`](hf/export_hub.py) rebuilds both formats from `web/policies/*.json` and checks
