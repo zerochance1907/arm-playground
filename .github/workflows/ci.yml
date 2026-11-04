@@ -16,6 +16,24 @@ jobs:
           node-version: 22
       - run: npm test
 
+  hf-export:
+    name: Hugging Face export matches the browser policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r hf/requirements.txt
+      - name: Export to safetensors + ONNX and verify (torch, onnxruntime vs web/policy.js)
+        run: python hf/export_hub.py --out "$RUNNER_TEMP/hf-model"
+      - name: Build the Space and dry-run the publish
+        run: |
+          python hf/build_space.py
+          python hf/publish.py --user ci-check --dry-run
+
   train-smoke:
     name: Training and export run end to end
     runs-on: ubuntu-latest
