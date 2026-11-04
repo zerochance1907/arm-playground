@@ -1,0 +1,10 @@
+{
+  "name": "arm-playground",
+  "private": true,
+  "type": "module",
+  "description": "A robot arm trained with reinforcement learning in PyTorch, running live in the browser.",
+  "scripts": {
+    "test": "node --test tests/parity.test.mjs"
+  },
+  "license": "MIT"
+}

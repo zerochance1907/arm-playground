@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arm Playground</title>
+  <meta name="description" content="A robot arm trained with reinforcement learning in PyTorch, running live in your browser. Drag the target and watch it react.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦾</text></svg>">
+  <style>
+    :root {
+      --bg: #0d1117; --panel: rgba(22, 27, 34, 0.92); --border: #30363d;
+      --text: #e6edf3; --muted: #8b949e; --accent: #ff8a3d; --good: #3fb950; --blue: #58a6ff;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+      font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+    #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+    #panel { position: fixed; top: 16px; right: 16px; width: 320px; max-height: calc(100% - 32px);
+      overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px; backdrop-filter: blur(8px); }
+    h1 { font-size: 18px; margin: 0 0 2px; }
+    .sub { color: var(--muted); margin: 0 0 14px; font-size: 13px; }
+    .seg { display: flex; background: #0d1117; border: 1px solid var(--border); border-radius: 8px; padding: 3px; margin-bottom: 10px; }
+    .seg button { flex: 1; border: 0; background: none; color: var(--muted); padding: 7px 4px; border-radius: 6px;
+      font: inherit; cursor: pointer; }
+    .seg button.on { background: #21262d; color: var(--text); font-weight: 600; }
+    .row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .row button { flex: 1; border: 1px solid var(--border); background: #21262d; color: var(--text);
+      padding: 8px; border-radius: 8px; font: inherit; cursor: pointer; }
+    .row button:hover, .seg button:hover { color: var(--text); }
+    label { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    input[type=range] { flex: 1; accent-color: var(--accent); }
+    .stat { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; font-size: 13px; padding: 2px 0; }
+    .stat b { font-weight: 600; }
+    .section { color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; margin: 14px 0 6px; }
+    #brain { width: 100%; display: block; border-radius: 6px; background: #0d1117; }
+    #curve { width: 100%; height: 70px; display: block; }
+    .hint { position: fixed; left: 16px; bottom: 16px; color: var(--muted); font-size: 13px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; }
+    .hint b { color: var(--accent); }
+    a { color: var(--blue); }
+    #status { color: var(--good); }
+    @media (max-width: 720px) {
+      #panel { top: auto; bottom: 0; right: 0; left: 0; width: auto; max-height: 46%; border-radius: 12px 12px 0 0; }
+      .hint { top: 12px; bottom: auto; left: 16px; right: 16px; text-align: center; }
+    }
+  </style>
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div class="hint" id="hint">Drag the <b>orange target</b>. The arm is driven by a neural network.</div>
+
+  <aside id="panel">
+    <h1>🦾 Arm Playground</h1>
+    <p class="sub">A robot arm trained with reinforcement learning in PyTorch, running live in your browser.
+      <a href="https://github.com/zerochance1907/arm-playground">Source</a></p>
+
+    <div class="seg" id="tasks">
+      <button data-task="reach" class="on">Reach</button>
+      <button data-task="push">Push the puck</button>
+    </div>
+    <div class="seg" id="brains">
+      <button data-brain="policy" class="on">Trained network</button>
+      <button data-brain="random">Random actions</button>
+    </div>
+    <div class="row">
+      <button id="shove" title="Kick every joint with a random velocity">Shove it</button>
+      <button id="scramble">New layout</button>
+    </div>
+    <label id="heightRow">Target height <input id="height" type="range" min="0.03" max="0.45" step="0.01" value="0.2"></label>
+    <label>Speed <input id="speed" type="range" min="0.25" max="2" step="0.25" value="1"></label>
+
+    <div class="stat"><span id="metricLabel">Hand to target</span><b id="metric">–</b></div>
+    <div class="stat"><span>Network inference</span><b id="infer">–</b></div>
+    <div class="stat"><span>Trained for</span><b id="trained">–</b></div>
+    <div class="stat"><span>Status</span><b id="status">loading…</b></div>
+
+    <div class="section">Network activity (2 × 128 neurons → 4 joints)</div>
+    <canvas id="brain" width="288" height="150"></canvas>
+
+    <div class="section" id="curveLabel">Training curve</div>
+    <svg id="curve" viewBox="0 0 288 70" preserveAspectRatio="none"></svg>
+  </aside>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
