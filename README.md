@@ -65,6 +65,17 @@ produce. Switch to **Random actions** to see what the arm does without its brain
 5. **Inference in the browser.** [`web/policy.js`](web/policy.js) is 30 lines: a
    normalize, three matrix multiplies and two `tanh`s. It takes about 100 µs per step.
 
+## On Hugging Face
+
+- **Model:** [huggingface.co/zerochance1907/arm-playground](https://huggingface.co/zerochance1907/arm-playground):
+  both policies as safetensors + ONNX, drop-in (raw observation in, action out), with a model card.
+- **Space:** [huggingface.co/spaces/zerochance1907/arm-playground](https://huggingface.co/spaces/zerochance1907/arm-playground):
+  the same live demo.
+
+[`hf/export_hub.py`](hf/export_hub.py) rebuilds both formats from `web/policies/*.json` and checks
+PyTorch and ONNX Runtime match the browser's forward pass to 1e-5 (CI runs it);
+[`hf/publish.py`](hf/publish.py) uploads the model and the Space.
+
 ## Run it yourself
 
 ```bash

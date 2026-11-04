@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 checkpoints/
 node_modules/
+dist-space/

@@ -1,0 +1,152 @@
+{
+  "name": "arm-playground",
+  "framework": "pytorch",
+  "repository": "https://github.com/zerochance1907/arm-playground",
+  "control_period_ms": 20.0,
+  "control_hz": 50,
+  "joints": [
+    "base_yaw",
+    "shoulder",
+    "elbow",
+    "wrist"
+  ],
+  "action_semantics": "Each action in [-1, 1] is a target joint velocity, scaled by vmax_rad_s; the motor reaches it through a first-order lag (tau = 80 ms) and joints stop at their limits.",
+  "vmax_rad_s": [
+    2.0,
+    2.0,
+    2.5,
+    3.0
+  ],
+  "actuator_lag_tau_s": 0.08,
+  "joint_limits_rad": {
+    "min": [
+      -2.8,
+      -0.2,
+      -2.6,
+      -2.0
+    ],
+    "max": [
+      2.8,
+      1.6,
+      0.3,
+      2.0
+    ]
+  },
+  "link_lengths_m": [
+    0.3,
+    0.25,
+    0.12
+  ],
+  "shoulder_height_m": 0.12,
+  "onnx": {
+    "opset": 17,
+    "input": "obs [batch, obs_dim] float32",
+    "output": "action [batch, 4] float32"
+  },
+  "tasks": {
+    "reach": {
+      "description": "Move the hand to a 3D target (and re-chase it when it moves).",
+      "files": {
+        "safetensors": "reach.safetensors",
+        "onnx": "reach.onnx"
+      },
+      "obs_dim": 21,
+      "action_dim": 4,
+      "hidden_sizes": [
+        128,
+        128
+      ],
+      "activation": "tanh",
+      "obs_normalization": "clip((obs - obs_mean) / obs_std, -5, 5), inside the model",
+      "output": "clip(linear_out, -1, 1), inside the model (deterministic policy mean)",
+      "observation": [
+        "sin_q_base_yaw",
+        "sin_q_shoulder",
+        "sin_q_elbow",
+        "sin_q_wrist",
+        "cos_q_base_yaw",
+        "cos_q_shoulder",
+        "cos_q_elbow",
+        "cos_q_wrist",
+        "qd_base_yaw_over_vmax",
+        "qd_shoulder_over_vmax",
+        "qd_elbow_over_vmax",
+        "qd_wrist_over_vmax",
+        "hand_x",
+        "hand_y",
+        "hand_z",
+        "target_x",
+        "target_y",
+        "target_z",
+        "target_minus_hand_x",
+        "target_minus_hand_y",
+        "target_minus_hand_z"
+      ],
+      "action": [
+        "base_yaw_velocity_command",
+        "shoulder_velocity_command",
+        "elbow_velocity_command",
+        "wrist_velocity_command"
+      ],
+      "trained_env_steps": 19988480,
+      "source": {
+        "file": "web/policies/reach.json",
+        "sha256": "7181b9909fc99bbd502067190a2ba133c725d644b8073e84e1c699c1cb2f70e5"
+      }
+    },
+    "push": {
+      "description": "Push a puck across the table onto a goal spot without overshooting.",
+      "files": {
+        "safetensors": "push.safetensors",
+        "onnx": "push.onnx"
+      },
+      "obs_dim": 25,
+      "action_dim": 4,
+      "hidden_sizes": [
+        128,
+        128
+      ],
+      "activation": "tanh",
+      "obs_normalization": "clip((obs - obs_mean) / obs_std, -5, 5), inside the model",
+      "output": "clip(linear_out, -1, 1), inside the model (deterministic policy mean)",
+      "observation": [
+        "sin_q_base_yaw",
+        "sin_q_shoulder",
+        "sin_q_elbow",
+        "sin_q_wrist",
+        "cos_q_base_yaw",
+        "cos_q_shoulder",
+        "cos_q_elbow",
+        "cos_q_wrist",
+        "qd_base_yaw_over_vmax",
+        "qd_shoulder_over_vmax",
+        "qd_elbow_over_vmax",
+        "qd_wrist_over_vmax",
+        "hand_x",
+        "hand_y",
+        "hand_z",
+        "puck_x",
+        "puck_y",
+        "puck_vel_x",
+        "puck_vel_y",
+        "goal_x",
+        "goal_y",
+        "puck_minus_hand_x",
+        "puck_minus_hand_y",
+        "goal_minus_puck_x",
+        "goal_minus_puck_y"
+      ],
+      "action": [
+        "base_yaw_velocity_command",
+        "shoulder_velocity_command",
+        "elbow_velocity_command",
+        "wrist_velocity_command"
+      ],
+      "trained_env_steps": 11831296,
+      "source": {
+        "file": "web/policies/push.json",
+        "sha256": "1837c9866c7fba5408e9b1051efe70c60c3c67006e88f9067c1b00e5b49d3c5e"
+      }
+    }
+  }
+}

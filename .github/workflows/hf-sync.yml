@@ -1,0 +1,52 @@
+name: Sync to Hugging Face
+
+# Rebuilds and verifies the Hub model files and the Space, then publishes them to
+# https://huggingface.co/<HF_USERNAME>/arm-playground and .../spaces/<HF_USERNAME>/arm-playground.
+# Needs the repository secret HF_TOKEN (a write token) and the repository variable
+# HF_USERNAME. Without them the publish step is skipped, not failed.
+
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", "hf/**", ".github/workflows/hf-sync.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hf-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_USERNAME: ${{ vars.HF_USERNAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install export dependencies (CPU torch)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r hf/requirements.txt
+      - name: Export to safetensors + ONNX and verify against web/policy.js
+        run: python hf/export_hub.py
+      - name: Build the static Space
+        run: python hf/build_space.py
+      - name: Check credentials
+        id: creds
+        run: |
+          if [ -n "$HF_TOKEN" ] && [ -n "$HF_USERNAME" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Hugging Face publish skipped::Set the HF_TOKEN repository secret and the HF_USERNAME repository variable to publish to the Hub."
+            python hf/publish.py --user "${HF_USERNAME:-example-user}" --dry-run
+          fi
+      - name: Publish model repo and Space
+        if: steps.creds.outputs.ready == 'true'
+        run: python hf/publish.py --user "$HF_USERNAME"
