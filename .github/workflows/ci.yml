@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  parity:
+    name: Browser sim + policy match PyTorch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+
+  train-smoke:
+    name: Training and export run end to end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Train briefly on both tasks (Push via imitation, then PPO)
+        run: |
+          python -m arm.train reach --steps 2e5 --envs 256
+          python -m arm.imitate --iters 2 --envs 64
+          python -m arm.train push --init checkpoints/push.pt --steps 2e5 --envs 256 --critic-warmup 2
+      - name: Export and evaluate
+        run: |
+          python -m arm.export reach push
+          python -m arm.evaluate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Freshly exported policies still match in JS
+        run: npm test
