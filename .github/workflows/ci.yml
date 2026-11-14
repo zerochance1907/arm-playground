@@ -5,13 +5,17 @@ on:
     branches: [main]
   pull_request:
 
+# CI only reads the repo; it never needs to write.
+permissions:
+  contents: read
+
 jobs:
   parity:
     name: Browser sim + policy match PyTorch
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
       - run: npm test
@@ -20,8 +24,8 @@ jobs:
     name: Hugging Face export matches the browser policy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
       - run: |
@@ -38,8 +42,8 @@ jobs:
     name: Training and export run end to end
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
       - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
@@ -52,7 +56,7 @@ jobs:
         run: |
           python -m arm.export reach push
           python -m arm.evaluate
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
       - name: Freshly exported policies still match in JS
